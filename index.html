@@ -1,0 +1,110 @@
+<html>
+<style>
+
+div {
+  font-family:     "Courier New", Courier, monospace;
+  font-size:       xx-small;
+}
+</style>
+
+<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
+<script>
+
+function dump(a) {
+ var e = document.getElementById("log");
+ e.innerHTML = e.innerHTML + ". " + a;
+}
+
+function updateVolume() {
+    $.getJSON('StatusHandler.asp', function (data) {
+	    volumeSetting = data.Z[0].V;
+	    volumeSetting-=161;
+	    volumeSetting*=0.5;
+	    updateVolumeTxt();
+	});
+};
+
+function updateVolumeTxt() {
+    $("#db").html(volumeSetting +"dB");
+}
+
+var volumeChangeInProgress=false;
+function changeVolume(up) {
+
+    if (volumeChangeInProgress)
+	return;
+    
+    volumeChangeInProgress = true;
+    var url = 'EventHandler.asp?WebToHostItem=';
+    if (up)
+	url += 'VU';
+    else
+	url += 'VD';
+	    
+    $.ajax({
+	    type: 'GET',
+	    url: url,
+	    dataType: "text", // pioneer sends back invalid json.
+	    success: function(json) {
+
+		// to prevent a round trip, just nudge this up.
+		if (up)
+		    volumeSetting += 0.5;
+		else
+		    volumeSetting -= 0.5;
+
+		updateVolumeTxt();
+		volumeChangeInProgress = false;
+	    },
+	    error: function(x,y,z) {
+		dump("changeVolume resulted in an error.... " + x + " " + y + " " + z);
+		volumeChangeInProgress = false;
+	    }
+	});
+}
+
+function volumeUp(){
+    changeVolume(true);
+}
+
+function volumeDown(){
+    changeVolume(false);
+}
+
+var volumeSetting = false;
+var timeout;
+
+$(document).ready(function() {
+	updateVolume();
+
+	$('#up')
+	    .mousedown(function() {
+		    timeout = setInterval(function(){
+			    volumeUp();
+			}, 50);
+		});
+
+	$('#down')
+	    .mousedown(function() {
+		    timeout = setInterval(function(){
+			    volumeDown();
+			}, 50);
+		});
+
+	$(document).mouseup(function(){
+		clearInterval(timeout);
+		return false;
+	    });
+    });
+
+</script>
+
+<div id="db"></div>
+
+<div id="volume">
+    <button id="up">+</button>
+    <button id="down">-</button>
+</div>
+
+<div id="log"></div>
+
