@@ -1,0 +1,19 @@
+Some Pioneer recievers have a web interface that allows you
+to control various settings.  For example, you can change
+the volume of your reciever by +0.5dB by sending a GET
+request to:
+
+http://<ipaddress>/EventHandler.asp?WebToHostItem=VU
+
+The major problem with Pioneer's web interface is that it
+isn't mobile friendly.  The goal of this is to make a web
+application that is mobile friendly and offers the basic
+functionality that I use most.
+
+To run:
+
+node volume.js
+
+From a browser, go to:
+
+http://<node ip>:3000/
